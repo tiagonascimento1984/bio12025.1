@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Cards - Biointeração I </title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .controls {
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .card-container {
+            perspective: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            box-sizing: border-box;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #4834d4, #686de0);
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        .card-content {
+            text-align: center;
+            font-size: 18px;
+            line-height: 1.5;
+        }
+
+        .card-front .card-content {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .progress {
+            margin: 30px 0;
+            color: white;
+            font-size: 18px;
+        }
+
+        .progress-bar {
+            background: rgba(255,255,255,0.3);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px auto;
+            width: 300px;
+        }
+
+        .progress-fill {
+            background: white;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .category {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        @media (max-width: 768px) {
+            .card-container {
+                height: 350px;
+            }
+            
+            .card-content {
+                font-size: 16px;
+            }
+            
+            .card-front .card-content {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Flash Cards - Biointeração I (2025.1) </h1>
+        
+        <div class="controls">
+            <button class="btn" onclick="previousCard()">⬅️ Anterior</button>
+            <button class="btn" onclick="shuffleCards()">🔀 Embaralhar</button>
+            <button class="btn" onclick="nextCard()">Próximo ➡️</button>
+        </div>
+
+        <div class="progress">
+            <div class="category" id="category"></div>
+            <div>Card <span id="current">1</span> de <span id="total">60</span></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+        </div>
+
+        <div class="card-container">
+            <div class="card" id="card" onclick="flipCard()">
+                <div class="card-face card-front">
+                    <div class="card-content" id="question"></div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="card-content" id="answer"></div>
+                </div>
+            </div>
+        </div>
+
+        <p style="color: white; margin-top: 30px; opacity: 0.8;">
+            💡 Clique no card para ver a resposta
+        </p>
+    </div>
+
+    <script>
+        const flashcards = [
+            // IMUNOLOGIA
+       { category: "Imunologia", question: "Quais são as três linhas de defesa do sistema imune inato?", answer: "1) Barreira física (pele, mucosas), 2) Barreira química (pH, enzimas), 3) Barreira microbiológica (flora normal)." },
+{ category: "Imunologia", question: "O que são PAMPs?", answer: "Padrões moleculares associados a patógenos, reconhecidos por PRRs do sistema imune inato." },
+{ category: "Imunologia", question: "Qual a principal célula apresentadora de antígenos?", answer: "A célula dendrítica." },
+{ category: "Imunologia", question: "Quais anticorpos atuam na mucosa intestinal?", answer: "Principalmente a IgA." },
+{ category: "Imunologia", question: "Qual célula está envolvida na imunidade contra parasitas extracelulares como helmintos?", answer: "Eosinófilos." },
+{ category: "Imunologia", question: "O que são PRRs?", answer: "Receptores de reconhecimento de padrões, como os Toll-Like Receptors, que identificam PAMPs." },
+{ category: "Imunologia", question: "O que são DAMPs?", answer: "São padrões moleculares associados a danos celulares, liberados por células do hospedeiro lesionadas." },
+{ category: "Imunologia", question: "O que é o Sistema Fagocítico Mononuclear?", answer: "Conjunto de células fagocitárias como monócitos e macrófagos que atuam na defesa contra patógenos." },
+{ category: "Imunologia", question: "Onde ocorre a maturação dos linfócitos B?", answer: "Na medula óssea." },
+{ category: "Imunologia", question: "Onde ocorre a maturação dos linfócitos T?", answer: "No timo." },
+{ category: "Imunologia", question: "Qual a função do baço no sistema imunológico?", answer: "Remoção de células sanguíneas velhas e resposta a antígenos circulantes." },
+{ category: "Imunologia", question: "O que é imunidade humoral?", answer: "É a resposta imune mediada por anticorpos produzidos pelos linfócitos B." },
+{ category: "Imunologia", question: "O que é imunidade celular?", answer: "É a resposta imune mediada por linfócitos T, que atuam diretamente sobre células infectadas." },
+{ category: "Imunologia", question: "O que são linfócitos T citotóxicos?", answer: "Células T CD8+ que destroem células infectadas por vírus ou células tumorais." },
+{ category: "Imunologia", question: "Qual a função dos linfócitos T auxiliares (Th)?", answer: "Ativar outras células do sistema imune, como macrófagos e linfócitos B." },
+{ category: "Imunologia", question: "O que é memória imunológica?", answer: "Capacidade do sistema imune de responder de forma mais rápida e eficaz a um segundo contato com o mesmo antígeno." },
+{ category: "Imunologia", question: "O que são citocinas?", answer: "Moléculas sinalizadoras produzidas por células do sistema imune que regulam a resposta inflamatória e imune." },
+{ category: "Imunologia", question: "Qual é a função da IL-2?", answer: "Estimula a proliferação de linfócitos T." },
+{ category: "Imunologia", question: "Qual é a função do interferon-gama (IFN-γ)?", answer: "Ativa macrófagos e aumenta a resposta imune celular." },
+{ category: "Imunologia", question: "O que são quimiocinas?", answer: "Citocinas que promovem a quimiotaxia de leucócitos." },
+{ category: "Imunologia", question: "O que é hipersensibilidade?", answer: "Resposta imune exagerada ou inadequada que causa dano ao organismo." },
+{ category: "Imunologia", question: "O que é imunidade adaptativa?", answer: "Resposta imune específica, com memória, mediada por linfócitos T e B." },
+{ category: "Imunologia", question: "Quais são os principais tipos de linfócitos T?", answer: "CD4+ (auxiliares) e CD8+ (citotóxicos)." },
+{ category: "Imunologia", question: "O que são células NK?", answer: "Células do sistema inato que matam células infectadas ou tumorais sem reconhecimento específico de antígeno." },
+{ category: "Imunologia", question: "Qual o papel das células T reguladoras?", answer: "Inibir respostas imunes excessivas e prevenir autoimunidade." },
+{ category: "Imunologia", question: "O que é um antígeno?", answer: "Molécula reconhecida pelo sistema imune, capaz de induzir resposta imune." },
+{ category: "Imunologia", question: "O que são anticorpos?", answer: "Proteínas produzidas por linfócitos B que se ligam especificamente a antígenos." },
+{ category: "Imunologia", question: "Quais são as classes de imunoglobulinas?", answer: "IgG, IgA, IgM, IgE e IgD." },
+{ category: "Imunologia", question: "Qual é a função da IgE?", answer: "Participa de reações alérgicas e na defesa contra parasitas." },
+{ category: "Imunologia", question: "O que é o sistema complemento?", answer: "Conjunto de proteínas plasmáticas que intensificam a resposta imune, facilitando a fagocitose e a lise de patógenos." },
+{ category: "Imunologia", question: "Qual o papel dos macrófagos na imunidade?", answer: "Fagocitose, apresentação de antígenos e liberação de citocinas." },
+{ category: "Imunologia", question: "O que é imunodeficiência?", answer: "Condição em que o sistema imunológico está ausente ou funcionalmente deficiente." },
+{ category: "Imunologia", question: "Qual a diferença entre imunidade ativa e passiva?", answer: "Ativa: o próprio organismo produz anticorpos. Passiva: anticorpos são transferidos prontos (ex: leite materno, soro)." },
+{ category: "Imunologia", question: "Exemplo de hipersensibilidade tipo I?", answer: "Alergias mediadas por IgE, como rinite alérgica e anafilaxia." },
+{ category: "Imunologia", question: "Exemplo de hipersensibilidade tipo II?", answer: "Anemia hemolítica autoimune (mediada por anticorpos contra células do próprio corpo)." },
+{ category: "Imunologia", question: "Exemplo de hipersensibilidade tipo III?", answer: "Lúpus eritematoso sistêmico (formação de imunocomplexos)." },
+{ category: "Imunologia", question: "Exemplo de hipersensibilidade tipo IV?", answer: "Dermatite de contato (resposta mediada por células T, sem anticorpos)." },
+{ category: "Imunologia", question: "O que é autoimunidade?", answer: "Condição em que o sistema imune reconhece componentes próprios do organismo como antígenos." },
+{ category: "Imunologia", question: "O que são antígenos T-dependentes?", answer: "Antígenos que requerem a ajuda dos linfócitos T para ativar os linfócitos B." },
+{ category: "Imunologia", question: "Como ocorre a seleção clonal?", answer: "Apenas os linfócitos que reconhecem um antígeno específico proliferam e se diferenciam." },
+{ category: "Imunologia", question: "O que são células de memória?", answer: "Células que permanecem após uma infecção, conferindo resposta imune rápida em exposições futuras." },
+{ category: "Imunologia", question: "Qual o papel da IgM na infecção?", answer: "É o primeiro anticorpo a ser produzido em resposta à infecção." },
+ 
+{ "category": "Imunologia - Órgãos Linfoides", "question": "Qual a função da Medula Óssea no sistema imune?", "answer": "A medula óssea é o órgão primário onde ocorre a hematopoiese — a produção de todas as células sanguíneas, incluindo as imunológicas. É também o local de maturação dos linfócitos B."},
+{"category": "Imunologia - Órgãos Linfoides", "question": "Qual a função do Timo no sistema imune?", "answer": "O timo é o órgão primário onde os linfócitos T amadurecem. Células imaturas chegam do sangue e passam por seleção positiva e negativa para desenvolver tolerância central."},
+{"category": "Imunologia - Órgãos Linfoides", "question": "Qual a função do Baço no sistema imune?", "answer": "O baço filtra o sangue, remove células envelhecidas e apresenta antígenos aos linfócitos, iniciando resposta imune contra patógenos circulantes."},
+    {"category": "Imunologia - Órgãos Linfoides", "question": "Qual a função dos Linfonodos?", "answer": "Os linfonodos são órgãos secundários que filtram a linfa e são locais de ativação e proliferação de linfócitos em resposta a antígenos trazidos por células apresentadoras."},
+    {"category": "Imunologia - Hematopoiese", "question": "O que é hematopoiese?", "answer": "Hematopoiese é o processo de formação e diferenciação das células sanguíneas a partir das células-tronco hematopoéticas na medula óssea."},
+    {"category": "Imunologia - Células Imunes", "question": "Quais são as principais células do sistema imune e suas funções?", "answer": "Neutrófilos (fagocitose); Linfócitos B (anticorpos); Linfócitos T (resposta celular); Monócitos/macrófagos (fagocitose e apresentação de antígenos); Células NK (citotoxicidade); Eosinófilos (parasitas); Basófilos/mastócitos (alergia)."},
+    {"category": "Imunologia - Conceitos Fundamentais", "question": "O que é PAMP?", "answer": "PAMPs são padrões moleculares associados a patógenos. São estruturas comuns em microrganismos reconhecidas pelo sistema imune inato."},
+    {"category": "Imunologia - Conceitos Fundamentais", "question": "O que é DAMP?", "answer": "DAMPs são padrões moleculares associados a dano celular. São liberados por células lesionadas e indicam perigo ao sistema imune."},
+    {"category": "Imunologia - Conceitos Fundamentais", "question": "O que é PRR?", "answer": "PRRs são receptores de reconhecimento de padrões presentes em células imunes inatas que detectam PAMPs e DAMPs, iniciando respostas inflamatórias."},
+    {"category": "Imunologia - Conceitos Fundamentais", "question": "O que é o Sistema Fagocítico Mononuclear?", "answer": "É um sistema composto por monócitos no sangue e macrófagos nos tecidos, responsáveis pela fagocitose de microrganismos e apresentação de antígenos."},
+    {"category": "Imunologia - Resposta Imune a Patógenos", "question": "Como o sistema imune responde a patógenos intracelulares?", "answer": "Linfócitos T citotóxicos (CD8+) matam células infectadas; macrófagos ativados por IFN-γ eliminam microrganismos intracelulares; NKs também participam."    },
+    { "category": "Imunologia - Resposta Imune a Patógenos", "question": "Como o sistema imune responde a patógenos extracelulares unicelulares?", "answer": "Fagócitos como neutrófilos e macrófagos fagocitam os patógenos; linfócitos B produzem anticorpos que neutralizam e facilitam a eliminação dos invasores." },
+    {"category": "Imunologia - Resposta Imune a Patógenos", "question": "Como o sistema imune atua contra parasitas multicelulares como vermes?", "answer": "Eosinófilos e mastócitos são ativados por IgE, liberando substâncias tóxicas contra os parasitas; resposta do tipo Th2 é predominante."},
+    {"category": "Imunologia - Resposta Imune a Vírus", "question": "O que é o estado antiviral na resposta imune a vírus?","answer": "É um estado induzido por interferons tipo I (IFN-α e IFN-β), que aumenta a resistência de células vizinhas à infecção viral e ativa NKs." },
+            
+            // PARASITOLOGIA
+          {"category": "Parasitologia", "question": "Quais são os principais grupos de parasitos?", "answer": "Protozoários, helmintos (platelmintos e nematelmintos) e artrópodes."},
+    {"category": "Parasitologia", "question": "O que é parasitismo segundo Davi Neves?", "answer": "Relação entre espécies diferentes onde apenas o parasita é beneficiado."},
+    {"category": "Parasitologia", "question": "Exemplo de protozoário causador de doença humana?", "answer": "Giardia lamblia - giardíase."},
+    {"category": "Parasitologia", "question": "Qual a forma infectante da Giardia?", "answer": "Cisto maduro."},
+    {"category": "Parasitologia", "question": "Qual helminto causa a ascaridíase?", "answer": "Ascaris lumbricoides."},
+    {"category": "Parasitologia", "question": "O que caracteriza um ectoparasita?", "answer": "Parasita que vive na parte externa do hospedeiro (ex: piolho, pulga)."},
+    {"category": "Parasitologia", "question": "O que é ação espoliativa?", "answer": "É a retirada de nutrientes do hospedeiro pelo parasito."},
+    {"category": "Parasitologia", "question": "Qual o vetor da doença de Chagas?", "answer": "O barbeiro (Triatoma spp.)."},
+{ category: "Parasitologia", question: "Qual parasito causa a esquistossomose?", answer: "Schistosoma mansoni." },
+{ category: "Parasitologia", question: "Quem é o hospedeiro intermediário do Schistosoma mansoni?", answer: "O caramujo do gênero Biomphalaria." },
+{ category: "Parasitologia", question: "O que é ação irritativa?", answer: "Dano causado por movimentos ou secreções do parasito nos tecidos do hospedeiro." },
+{ category: "Parasitologia", question: "O que é ação obstrutiva?", answer: "Bloqueio de dutos ou órgãos do hospedeiro pelo parasito." },
+{ category: "Parasitologia", question: "Exemplo de hemoparasita?", answer: "Plasmodium sp. causador da malária." },
+{ category: "Parasitologia", question: "Qual a forma de transmissão da giardíase?", answer: "Ingestão de cistos presentes em água ou alimentos contaminados." },
+{ category: "Parasitologia", question: "O que são enteroparasitas?", answer: "Parasitos que vivem no intestino, como Giardia lamblia e Taenia solium." },
+{ category: "Parasitologia", question: "O que é hospedeiro definitivo?", answer: "Aquele em que o parasito atinge a fase adulta ou realiza reprodução sexuada." },
+{ category: "Parasitologia", question: "O que é hospedeiro intermediário?", answer: "Aquele onde o parasito passa por fases larvais ou reprodução assexuada." },
+{ category: "Parasitologia", question: "Qual o papel do mosquito no ciclo da malária?", answer: "É o vetor e hospedeiro definitivo do Plasmodium." },
+{ category: "Parasitologia", question: "Como ocorre a transmissão da teníase?", answer: "Pela ingestão de carne crua ou mal cozida contendo cisticercos." },
+{ category: "Parasitologia", question: "Qual a forma infectante do Schistosoma mansoni?", answer: "A cercária, que penetra ativamente pela pele." },
+{ category: "Parasitologia", question: "Quais são as formas do parasito Leishmania?", answer: "Promastigota (inseto vetor) e amastigota (no hospedeiro vertebrado)." },
+{ category: "Parasitologia", question: "Como prevenir as leishmanioses?", answer: "Controle do vetor, proteção individual e manejo ambiental." },
+{ category: "Parasitologia", question: "Como é transmitida a toxoplasmose?", answer: "Ingestão de oocistos em água ou alimentos contaminados ou carne crua com cistos." },
+{ category: "Parasitologia", question: "Quem é o hospedeiro definitivo do Toxoplasma gondii?", answer: "Felinos, especialmente gatos domésticos." },
+{ category: "Parasitologia", question: "Como ocorre a transmissão da amebíase?", answer: "Ingestão de água ou alimentos contaminados com cistos de Entamoeba histolytica." },
+{ category: "Parasitologia", question: "O que são trofozoítos?", answer: "Forma ativa e multiplicativa de protozoários como Giardia e Entamoeba." },
+{ category: "Parasitologia", question: "Qual a importância da educação sanitária na prevenção das parasitoses?", answer: "Promove hábitos de higiene e saneamento, reduzindo a transmissão de parasitas." },
+{ category: "Parasitologia", question: "Qual parasito é transmitido pela picada do flebotomíneo?", answer: "Leishmania spp." },
+{ category: "Parasitologia", question: "Como se chama a doença causada por Taenia solium em humanos quando há ingestão de ovos?", answer: "Cisticercose." },
+{ category: "Parasitologia", question: "Qual a diferença entre teníase e cisticercose?", answer: "Teníase ocorre pela ingestão de cisticercos; cisticercose pela ingestão de ovos da Taenia solium." },
+{ category: "Parasitologia", question: "Qual protozoário é transmitido por via sexual?", answer: "Trichomonas vaginalis." },
+{ category: "Parasitologia", question: "Como se transmite a doença de Chagas?", answer: "Principalmente pelas fezes do barbeiro contaminadas com Trypanosoma cruzi." },
+{ category: "Parasitologia", question: "O que são helmintos?", answer: "Vermes parasitas como nematoides e platelmintos." },
+{ category: "Parasitologia", question: "Quais são as principais classes dos Platyhelminthes?", answer: "Trematoda, Cestoda e Turbellaria." },
+{ category: "Parasitologia", question: "Como se transmite a enterobíase?", answer: "Por ingestão de ovos de Enterobius vermicularis." },
+{ category: "Parasitologia", question: "O que é auto-infecção?", answer: "Quando o próprio hospedeiro reinfecta-se com o mesmo parasita, como na oxiuríase." },
+{ category: "Parasitologia", question: "Quais parasitos são transmitidos por ingestão de carne mal cozida?", answer: "Taenia spp., Toxoplasma gondii e Trichinella spiralis." },
+{ category: "Parasitologia", question: "Como é transmitida a ancilostomíase?", answer: "Penetração ativa das larvas filarioides na pele." },
+{ category: "Parasitologia", question: "O que é helmintologia?", answer: "Estudo dos helmintos, seus ciclos e doenças associadas." },
+{ category: "Parasitologia", question: "O que são cestódeos?", answer: "Vermes achatados, segmentados e sem sistema digestivo, como as tênias." },
+{ category: "Parasitologia", question: "Qual a forma larval da Taenia?", answer: "Cisticerco." },
+{ category: "Parasitologia", question: "Qual helminto está associado à larva migrans?", answer: "Toxocara canis." },
+{ category: "Parasitologia", question: "Qual parasita pode causar obstrução intestinal?", answer: "Ascaris lumbricoides, especialmente em infecções maciças." },
+{ category: "Parasitologia", question: "O que são geohelmintos?", answer: "Helmintos cujos ovos ou larvas se desenvolvem no solo, como Ascaris e Ancylostoma." },
+{ category: "Parasitologia", question: "Qual helminto causa prolapso retal em crianças?", answer: "Trichuris trichiura (tricuríase)." },
+{ category: "Parasitologia", question: "Qual parasita é transmitido por penetração ativa na pele?", answer: "Schistosoma mansoni e larvas de Ancylostoma." },
+{ category: "Parasitologia", question: "Quais são os sintomas da esquistossomose?", answer: "Febre, dor abdominal, diarreia, hepatomegalia e ascite nas formas crônicas." },
+{ category: "Parasitologia", question: "Qual é a principal medida de prevenção da ancilostomíase?", answer: "Evitar andar descalço em solos contaminados." },
+{ category: "Parasitologia", question: "O que são protozoários flagelados?", answer: "Protozoários que usam flagelos para locomoção, como Giardia e Leishmania." },
+{ category: "Parasitologia", question: "Como é feita a profilaxia da amebíase?", answer: "Higienização dos alimentos, saneamento básico e tratamento da água." },
+{ category: "Parasitologia", question: "Qual doença é causada por Entamoeba histolytica?", answer: "Amebíase." },
+{ category: "Parasitologia", question: "O que é helminto dioico?", answer: "Espécie que possui sexos separados, como os nematoides." },
+{ category: "Parasitologia", question: "O que são trematódeos?", answer: "Helmintos achatados, não segmentados, com tubo digestivo incompleto (ex: Schistosoma)." },
+
+            
+            // VIROLOGIA
+             {"category": "Virologia", "question": "O que é um vírus?", "answer": "Parasita intracelular obrigatório que contém ácido nucleico e se replica em células vivas."},
+    {"category": "Virologia", "question": "Qual a diferença entre vírus envelopado e não envelopado?", "answer": "Envelopado possui camada lipídica externa; o não envelopado tem apenas o capsídeo."},
+    {"category": "Virologia", "question": "Qual o papel das espículas virais?", "answer": "Adesão às células hospedeiras e penetração."},
+    {"category": "Virologia", "question": "Quais são as etapas do ciclo viral?", "answer": "Adsorção, penetração, replicação, montagem e liberação."},
+    {"category": "Virologia", "question": "Qual estrutura protege o genoma viral?", "answer": "O capsídeo."},
+{ category: "Virologia", question: "Qual é o ácido nucleico dos vírus?", answer: "Pode ser DNA ou RNA, mas nunca ambos no mesmo vírus." },
+{ category: "Virologia", question: "O que são capsômeros?", answer: "Subunidades proteicas que compõem o capsídeo do vírus." },
+{ category: "Virologia", question: "O que é um bacteriófago?", answer: "Vírus que infecta bactérias." },
+{ category: "Virologia", question: "Como ocorre o cultivo de vírus?", answer: "Em células vivas, ovos embrionados ou animais de laboratório." },
+{ category: "Virologia", question: "O que é ciclo lítico?", answer: "Tipo de multiplicação viral que leva à lise da célula hospedeira." },
+{ category: "Virologia", question: "O que é ciclo lisogênico?", answer: "Tipo de multiplicação viral em que o genoma viral se integra ao DNA da célula hospedeira." },
+{ category: "Virologia", question: "Como os vírus são classificados?", answer: "Pelo tipo de ácido nucleico, simetria do capsídeo, presença de envelope e estratégia de replicação." },
+{ category: "Virologia", question: "O que são vírus RNA de fita positiva?", answer: "Vírus cujo RNA pode ser traduzido diretamente pelos ribossomos do hospedeiro." },
+{ category: "Virologia", question: "O que são retrovírus?", answer: "Vírus RNA que usam transcriptase reversa para formar DNA a partir de RNA, como o HIV." },
+{ category: "Virologia", question: "Como ocorre a liberação de novos vírions?", answer: "Por lise da célula ou brotamento (em vírus envelopados)." },
+{ category: "Virologia", question: "Como o HIV infecta as células?", answer: "Liga-se aos receptores CD4 e co-receptores CCR5 ou CXCR4 em linfócitos T." },
+{ category: "Virologia", question: "O que é transcriptase reversa?", answer: "Enzima viral que converte RNA viral em DNA." },
+{ category: "Virologia", question: "O que caracteriza os vírus da gripe?", answer: "São vírus RNA com envelope e apresentam variações genéticas frequentes (antigenic shift e drift)." },
+{ category: "Virologia", question: "O que é vacina de vírus inativado?", answer: "Vacina com vírus mortos que não causam doença, mas induzem resposta imune." },
+{ category: "Virologia", question: "O que é um vírus oncogênico?", answer: "Vírus capaz de induzir o desenvolvimento de câncer, como o HPV." },
+{ category: "Virologia", question: "Qual é o material genético do vírus da hepatite B?", answer: "DNA." },
+{ category: "Virologia", question: "Quais são as rotas de transmissão viral?", answer: "Respiratória, fecal-oral, sexual, parenteral, vertical." },
+{ category: "Virologia", question: "O que é a técnica de ELISA?", answer: "Técnica usada para detectar antígenos ou anticorpos em amostras clínicas." },
+{ category: "Virologia", question: "O que é viremia?", answer: "Presença de vírus no sangue." },
+{ category: "Virologia", question: "Como é feita a produção de vacinas virais?", answer: "Por cultivo do vírus em ovos embrionados, culturas celulares ou técnicas recombinantes." },
+{ category: "Virologia", question: "O que é tropismo viral?", answer: "Preferência de um vírus por determinados tipos celulares ou tecidos." },
+{ category: "Virologia", question: "Como atua o interferon na defesa antiviral?", answer: "Induz a expressão de genes antivirais nas células vizinhas." },
+{ category: "Virologia", question: "Quais métodos laboratoriais são usados para diagnóstico viral?", answer: "PCR, ELISA, imunofluorescência, cultura viral e sorologia." },
+{ category: "Virologia", question: "O que são vacinas atenuadas?", answer: "Vacinas com vírus vivos enfraquecidos, que provocam resposta imune sem causar doença." },
+{ category: "Virologia", question: "O que é latência viral?", answer: "Capacidade de alguns vírus permanecerem dormentes no organismo, como o herpesvírus." },
+{ category: "Virologia", question: "Quais vírus são transmitidos por gotículas respiratórias?", answer: "Influenza, sarampo, rinovírus, coronavírus." },
+{ category: "Virologia", question: "Qual vírus é associado ao câncer de colo uterino?", answer: "HPV (Papilomavírus Humano), especialmente os tipos 16 e 18." },
+{ category: "Virologia", question: "Qual a função da proteína capsidial viral?", answer: "Proteger o genoma viral e ajudar na entrada do vírus na célula hospedeira." },
+{ category: "Virologia", question: "O que é mutação antigênica?", answer: "Mudanças nos antígenos virais que ajudam o vírus a escapar do sistema imune." },
+{ category: "Virologia", question: "Qual vírus é utilizado na vacina contra a febre amarela?", answer: "Vírus vivo atenuado da febre amarela 17D." },
+{ category: "Virologia", question: "Quais vírus têm transmissão fecal-oral?", answer: "Hepatite A e E, rotavírus, enterovírus." },
+{ category: "Virologia", question: "O que é cultura celular?", answer: "Técnica para replicação de vírus em células mantidas em laboratório." },
+            
+            // PATOLOGIA
+           {"category": "Patologia", "question": "Quais são os sinais flogísticos da inflamação aguda?", "answer": "Rubor, calor, tumor, dor e perda de função."},
+    {"category": "Patologia", "question": "O que é exsudato purulento?", "answer": "Fluido inflamatório rico em neutrófilos (pus)."},
+    {"category": "Patologia", "question": "O que é a fase alterativa da inflamação?", "answer": "É a fase em que ocorrem danos diretos aos tecidos, como necrose."},
+    {"category": "Patologia", "question": "Qual célula é predominante na inflamação aguda?", "answer": "O neutrófilo."},
+    {"category": "Patologia", "question": "O que caracteriza a inflamação crônica?", "answer": "Presença de linfócitos, plasmócitos e macrófagos, além de fibrose."},
+{ category: "Patologia", question: "O que é patogenia?", answer: "Mecanismo pelo qual a doença se desenvolve." },
+{ category: "Patologia", question: "O que é etiologia?", answer: "Estudo das causas das doenças." },
+{ category: "Patologia", question: "O que é pródromo?", answer: "Sinais e sintomas iniciais inespecíficos de uma doença." },
+{ category: "Patologia", question: "Quais são as três fases da inflamação aguda?", answer: "Fase alterativa, fase exsudativa e fase proliferativa." },
+{ category: "Patologia", question: "O que é um exsudato seroso?", answer: "Fluido claro com baixo teor proteico, típico de inflamações leves." },
+{ category: "Patologia", question: "O que é inflamação?", answer: "Resposta do tecido vascularizado a uma agressão, com objetivo de eliminar a causa da lesão e reparar o dano." },
+{ category: "Patologia", question: "Quais são as células da fase proliferativa da inflamação?", answer: "Fibroblastos, células endoteliais e epiteliais." },
+{ category: "Patologia", question: "O que é necrose?", answer: "Morte celular patológica com ruptura da membrana e inflamação adjacente." },
+{ category: "Patologia", question: "O que é apoptose?", answer: "Morte celular programada, sem inflamação associada." },
+{ category: "Patologia", question: "Qual a principal diferença entre necrose e apoptose?", answer: "A necrose causa inflamação e é desorganizada; a apoptose é ordenada e não inflamatória." },
+{ category: "Patologia", question: "O que é lesão reversível?", answer: "Alterações celulares que podem ser revertidas se o estímulo nocivo for removido." },
+{ category: "Patologia", question: "O que é lesão irreversível?", answer: "Dano celular que progride para a morte celular, mesmo após a remoção do estímulo." },
+{ category: "Patologia", question: "Quais são os tipos de necrose?", answer: "Coagulativa, liquefativa, caseosa, gordurosa e fibrinoide." },
+{ category: "Patologia", question: "O que é inflamação granulomatosa?", answer: "Inflamação crônica com formação de granulomas, como na tuberculose." },
+{ category: "Patologia", question: "O que é regeneração tecidual?", answer: "Reposição das células perdidas por células idênticas." },
+{ category: "Patologia", question: "O que é cicatrização?", answer: "Substituição do tecido lesado por tecido conjuntivo fibroso." },
+{ category: "Patologia", question: "O que é metaplasia?", answer: "Alteração reversível onde um tipo celular é substituído por outro." },
+{ category: "Patologia", question: "O que é displasia?", answer: "Alteração do crescimento e diferenciação celular, podendo ser precursora de câncer." },
+{ category: "Patologia", question: "O que é anaplasia?", answer: "Perda da diferenciação celular, típica de células malignas." },
+{ category: "Patologia", question: "Quais são os componentes de um granuloma?", answer: "Macrófagos ativados (células epitelioides), células gigantes, linfócitos e fibroblastos." },
+{ category: "Patologia", question: "O que é angiogênese?", answer: "Formação de novos vasos sanguíneos, importante na cicatrização e no câncer." },
+{ category: "Patologia", question: "O que é hiperplasia?", answer: "Aumento do número de células em um tecido." },
+{ category: "Patologia", question: "O que é hipertrofia?", answer: "Aumento do volume celular." },
+{ category: "Patologia", question: "O que é atrofia?", answer: "Diminuição do tamanho e função celular." },
+{ category: "Patologia", question: "O que caracteriza uma neoplasia maligna?", answer: "Invasividade, capacidade de metastatizar e crescimento descontrolado." },
+{ category: "Patologia", question: "Qual exame avalia a função de órgãos de forma não invasiva?", answer: "Exames de imagem, como ultrassonografia, tomografia e ressonância." },
+{ category: "Patologia", question: "O que é uma biópsia?", answer: "Remoção de tecido vivo para análise histopatológica." },
+{ category: "Patologia", question: "O que é carcinoma?", answer: "Tumor maligno originado em tecido epitelial." },
+{ category: "Patologia", question: "O que é sarcoma?", answer: "Tumor maligno originado em tecidos conjuntivos ou mesenquimais." },
+{ category: "Patologia", question: "O que é pleomorfismo celular?", answer: "Variação no tamanho e forma das células, comum em neoplasias malignas." },
+{ category: "Patologia", question: "Quais são os métodos moleculares em patologia?", answer: "PCR, hibridização in situ, sequenciamento e imunohistoquímica." },
+{ category: "Patologia", question: "O que é neoplasia benigna?", answer: "Crescimento celular não invasivo e geralmente encapsulado, como lipoma ou adenoma." },
+{ category: "Patologia", question: "O que é mitose atípica?", answer: "Divisão celular anormal frequentemente observada em células neoplásicas." },
+{ category: "Patologia", question: "Qual a diferença entre tumor e câncer?", answer: "Tumor é uma massa anormal; câncer é um tumor maligno com potencial invasivo e metastático." },
+{ category: "Patologia", question: "O que são margens cirúrgicas comprometidas?", answer: "Indica que a neoplasia alcança a borda do tecido ressecado, sugerindo remoção incompleta." },
+{ category: "Patologia", question: "O que é necrose caseosa?", answer: "Tipo de necrose com aspecto granuloso e esbranquiçado, típico da tuberculose." },
+{ category: "Patologia", question: "Como se classificam os processos patológicos?", answer: "Em inflamatórios, degenerativos, neoplásicos, imunológicos, infecciosos, entre outros." }
+        ];
+
+        let currentCardIndex = 0;
+        let isFlipped = false;
+
+        function updateCard() {
+            const card = flashcards[currentCardIndex];
+            document.getElementById('question').textContent = card.question;
+            document.getElementById('answer').textContent = card.answer;
+            document.getElementById('category').textContent = card.category;
+            document.getElementById('current').textContent = currentCardIndex + 1;
+            document.getElementById('total').textContent = flashcards.length;
+            
+            const progress = ((currentCardIndex + 1) / flashcards.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+            
+            // Reset flip
+            document.getElementById('card').classList.remove('flipped');
+            isFlipped = false;
+        }
+
+        function flipCard() {
+            const cardElement = document.getElementById('card');
+            cardElement.classList.toggle('flipped');
+            isFlipped = !isFlipped;
+        }
+
+        function nextCard() {
+            currentCardIndex = (currentCardIndex + 1) % flashcards.length;
+            updateCard();
+        }
+
+        function previousCard() {
+            currentCardIndex = (currentCardIndex - 1 + flashcards.length) % flashcards.length;
+            updateCard();
+        }
+
+        function shuffleCards() {
+            for (let i = flashcards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [flashcards[i], flashcards[j]] = [flashcards[j], flashcards[i]];
+            }
+            currentCardIndex = 0;
+            updateCard();
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(event) {
+            switch(event.key) {
+                case 'ArrowRight':
+                case ' ':
+                    if (isFlipped) {
+                        nextCard();
+                    } else {
+                        flipCard();
+                    }
+                    break;
+                case 'ArrowLeft':
+                    previousCard();
+                    break;
+                case 'ArrowUp':
+                case 'ArrowDown':
+                    flipCard();
+                    break;
+                case 'Enter':
+                    flipCard();
+                    break;
+            }
+        });
+
+        // Initialize
+        updateCard();
+    </script>
+</body>
+</html>
